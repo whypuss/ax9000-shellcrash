@@ -87,6 +87,10 @@ rules:
   - DOMAIN-KEYWORD,google-ai,代理
   - DOMAIN-KEYWORD,gemini,代理
 
+  # ========== IP 檢測 ==========
+  - DOMAIN-SUFFIX,ip.sb,代理
+  - DOMAIN-SUFFIX,ipinfo.io,代理
+
   # ========== 默認規則 ==========
   # 中國 IP 直連
   - GEOIP,CN,DIRECT
