@@ -17,10 +17,10 @@ unzip -o xmir.zip && cd xmir-patcher-main
 # 2. SSH 連接並修改密碼
 sshpass -p 'root' ssh -o StrictHostKeyChecking=no root@192.168.31.1
 # 修改密碼（之後每次用新密碼）
-echo -e 'qwerty66\nqwerty66' | passwd root
+echo -e 'YOUR_NEW_SSH_PASSWORD\nYOUR_NEW_SSH_PASSWORD' | passwd root
 
 # 3. 下載並安裝 ShellCrash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
 mkdir -p /userdisk/shellcrash
 cd /tmp
 curl -kfsSL https://raw.githubusercontent.com/juewuy/ShellCrash/master/ShellCrash.tar.gz -o ShellCrash.tar.gz
@@ -30,7 +30,7 @@ echo 'alias crash=/userdisk/shellcrash/menu.sh' >> /etc/profile
 ENDSSH
 
 # 4. 啟動 ShellCrash（核心：meta）
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
 
 # 5. 複製配置（見下方配置章節）
 ```
@@ -99,10 +99,10 @@ sshpass -p 'root' ssh -o StrictHostKeyChecking=no root@192.168.31.1 "uname -a"
 sshpass -p 'root' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 
 # 修改 root 密碼
-echo -e 'qwerty66\nqwerty66' | passwd root
+echo -e 'YOUR_NEW_SSH_PASSWORD\nYOUR_NEW_SSH_PASSWORD' | passwd root
 
 # 之後用新密碼登入
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 ```
 
 ---
@@ -113,25 +113,25 @@ ShellCrash 係一個純 Shell 腳本，不需要 opkg，直接下載二進制核
 
 ```bash
 # 建立目錄
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "mkdir -p /userdisk/shellcrash"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "mkdir -p /userdisk/shellcrash"
 
 # 下載 ShellCrash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
 cd /tmp
 curl -kfsSL https://raw.githubusercontent.com/juewuy/ShellCrash/master/ShellCrash.tar.gz -o ShellCrash.tar.gz
 tar -zxf ShellCrash.tar.gz -C /userdisk/shellcrash/
 ENDSSH
 
 # 配置環境變量
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "echo 'export CRASHDIR=/userdisk/shellcrash' >> /etc/profile"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "echo 'export CRASHDIR=/userdisk/shellcrash' >> /etc/profile"
 
 # 啟動
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
 ```
 
 ### 驗證安裝
 ```bash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
 # 應看到類似：1232m S /tmp/ShellCrash/CrashCore
 ```
 
@@ -142,7 +142,7 @@ sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-
 ### 方式一：在路由器上手動添加節點
 
 ```bash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/menu.sh"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/menu.sh"
 # 選擇：6 - 配置文件管理 → 1 - 添加節點 → 粘貼 VLESS URL
 ```
 
@@ -150,13 +150,13 @@ sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-
 
 ```bash
 # VLESS 節點信息
-# 提供商：hl13893j
+# 提供商：YOUR_NODE_NAME
 # 協議：VLESS + WebSocket + TLS
-# 伺服器：jp.xlin.eu.cc:443
-# UUID：9158ed39-7953-492f-80b7-531c5fa3ceeb
+# 伺服器：YOUR_PROXY_SERVER:443
+# UUID：YOUR_UUID
 # Path：/
 
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat > /tmp/ShellCrash/config.yaml" < config.yaml
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat > /tmp/ShellCrash/config.yaml" < config.yaml
 ```
 
 ### 方式三：訂閱 URL（在 ShellCrash 界面操作）
@@ -239,19 +239,19 @@ curl -x http://192.168.31.1:7890 -sL https://chatgpt.com -o /dev/null -w "HTTP: 
 
 ```bash
 # 查看 CrashCore 進程
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
 
 # 查看 ShellCrash 日誌
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "tail -20 /tmp/ShellCrash/ShellCrash.log"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "tail -20 /tmp/ShellCrash/ShellCrash.log"
 
 # 查看 Clash 實時日誌（需要開啟 debug 模式）
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat /tmp/ShellCrash/crashcore.log | grep -E 'DIRECT|代理' | tail -10"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat /tmp/ShellCrash/crashcore.log | grep -E 'DIRECT|代理' | tail -10"
 
 # Dashboard（瀏覽器打開）
 open http://192.168.31.1:9999
 
 # 重啟代理
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
 
 # 測試 API 是否走代理（在 Mac terminal）
 curl -x http://192.168.31.1:7890 -s https://api.anthropic.com -o /dev/null -w "HTTP: %{http_code}\n"
@@ -264,7 +264,7 @@ curl -x http://192.168.31.1:7890 -s https://api.anthropic.com -o /dev/null -w "H
 | 項目 | 值 |
 |------|---|
 | 路由器 IP | `192.168.31.1` |
-| SSH 密碼 | `qwerty66` |
+| SSH 密碼 | `YOUR_NEW_SSH_PASSWORD` |
 | ShellCrash 目錄 | `/userdisk/shellcrash` |
 | 運行配置 | `/tmp/ShellCrash/config.yaml` |
 | HTTP 代理端口 | `7890` |
@@ -280,7 +280,7 @@ curl -x http://192.168.31.1:7890 -s https://api.anthropic.com -o /dev/null -w "H
 ### Q: ShellCrash 提示核心不完整？
 ```bash
 # 重新下載核心
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 cd /tmp/ShellCrash
 curl -kfsSL https://raw.githubusercontent.com/juewuy/ShellCrash/master/CrashCore.tar.gz -o CrashCore.tar.gz
 tar -zxf CrashCore.tar.gz
@@ -292,7 +292,7 @@ tar -zxf CrashCore.tar.gz
 ### Q: 訂閱更新後節點没了？
 每次重啟路由器後，需重新拷貝配置：
 ```bash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cp /userdisk/shellcrash/yamls/config.yaml /tmp/ShellCrash/config.yaml; killall CrashCore; sleep 1; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cp /userdisk/shellcrash/yamls/config.yaml /tmp/ShellCrash/config.yaml; killall CrashCore; sleep 1; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
 ```
 
 ---

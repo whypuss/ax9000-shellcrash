@@ -37,27 +37,27 @@ dns:
 # === 代理節點（VLESS + WebSocket + TLS）===
 # 請替換為你自己的節點信息
 proxies:
-  - name: hl13893j
+  - name: YOUR_NODE_NAME
     type: vless
-    server: jp.xlin.eu.cc
+    server: YOUR_PROXY_SERVER
     port: 443
-    uuid: 9158ed39-7953-492f-80b7-531c5fa3ceeb
+    uuid: YOUR_UUID
     network: ws
     tls: true
-    sni: jp.xlin.eu.cc
+    sni: YOUR_PROXY_SERVER
     skip-cert-verify: false
     udp: true
     xudp: true
     ws-opts:
       path: "/"
       headers:
-        Host: jp.xlin.eu.cc
+        Host: YOUR_PROXY_SERVER
 
 proxy-groups:
   - name: 代理
     type: select
     proxies:
-      - hl13893j
+      - YOUR_NODE_NAME
 
 rules:
   # ========== AI 服務分流（白名單模式）==========

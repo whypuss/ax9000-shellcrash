@@ -16,7 +16,7 @@ NC='\033[0m'
 # 參數
 ROUTER_IP="${ROUTER_IP:-192.168.31.1}"
 SSH_PASS="${SSH_PASS:-root}"           # 初始 SSH 密碼（解鎖後）
-NEW_PASS="${NEW_PASS:-qwerty66}"       # 新 SSH 密碼
+NEW_PASS="${NEW_PASS:-YOUR_NEW_SSH_PASSWORD}"       # 新 SSH 密碼
 CRASHDIR="${CRASHDIR:-/userdisk/shellcrash}"
 
 echo -e "${GREEN}=== AX9000 ShellCrash 安裝腳本 ===${NC}"

@@ -60,16 +60,16 @@ sshpass -p 'root' ssh -o StrictHostKeyChecking=no root@192.168.31.1 "uname -a"
 sshpass -p 'root' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 
 # 改密碼
-echo -e 'qwerty66\nqwerty66' | passwd root
+echo -e 'YOUR_NEW_SSH_PASSWORD\nYOUR_NEW_SSH_PASSWORD' | passwd root
 
 # 之後用新密碼
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 ```
 
 ## 📦 安裝 ShellCrash
 
 ```bash
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
 mkdir -p /userdisk/shellcrash
 cd /tmp
 curl -kfsSL https://raw.githubusercontent.com/juewuy/ShellCrash/master/ShellCrash.tar.gz -o ShellCrash.tar.gz
@@ -78,10 +78,10 @@ echo 'export CRASHDIR=/userdisk/shellcrash' >> /etc/profile
 ENDSSH
 
 # 啟動
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
 
 # 驗證
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
 ```
 
 ## ⚙️ 配置節點 + 分流
@@ -111,27 +111,27 @@ dns:
     geoip-code: CN
 
 proxies:
-  - name: hl13893j
+  - name: YOUR_NODE_NAME
     type: vless
-    server: jp.xlin.eu.cc
+    server: YOUR_PROXY_SERVER
     port: 443
-    uuid: 9158ed39-7953-492f-80b7-531c5fa3ceeb
+    uuid: YOUR_UUID
     network: ws
     tls: true
-    sni: jp.xlin.eu.cc
+    sni: YOUR_PROXY_SERVER
     skip-cert-verify: false
     udp: true
     xudp: true
     ws-opts:
       path: "/"
       headers:
-        Host: jp.xlin.eu.cc
+        Host: YOUR_PROXY_SERVER
 
 proxy-groups:
   - name: 代理
     type: select
     proxies:
-      - hl13893j
+      - YOUR_NODE_NAME
 
 rules:
   # Anthropic
@@ -163,10 +163,10 @@ rules:
 ### 寫入配置
 ```bash
 # 在 Mac 本地創建配置文件，然後 SSH 寫入
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat > /tmp/ShellCrash/config.yaml" < config.yaml
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat > /tmp/ShellCrash/config.yaml" < config.yaml
 
 # 重啟代理
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
 ```
 
 ## 🌐 兩種代理模式
@@ -233,7 +233,7 @@ curl -x http://192.168.31.1:7890 -k -s -w "\nHTTP: %{http_code}" \
 
 ```bash
 # SSH 進入路由器
-sshpass -p 'qwerty66' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 
 # 查看進程
 ps | grep CrashCore
@@ -256,7 +256,7 @@ open http://192.168.31.1:9999
 | 項目 | 值 |
 |------|---|
 | 路由器 IP | `192.168.31.1` |
-| SSH 密碼 | `qwerty66` |
+| SSH 密碼 | `YOUR_NEW_SSH_PASSWORD` |
 | ShellCrash 目錄 | `/userdisk/shellcrash` |
 | 運行配置 | `/tmp/ShellCrash/config.yaml` |
 | HTTP 代理 | `192.168.31.1:7890` |
