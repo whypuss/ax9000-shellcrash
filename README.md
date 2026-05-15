@@ -32,8 +32,19 @@ ENDSSH
 # 4. 啟動 ShellCrash（核心：meta）
 sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/start.sh"
 
-# 5. 複製配置（見下方配置章節）
+# 5. 直接在路由器上生成配置文件（見下方）
 ```
+
+---
+
+## ⚠️ 重要：不要上傳 config 文件
+
+**不要**把 config.yaml 上傳到路由器或任何地方！
+
+正確做法：在路由器上用 SSH 命令直接生成配置文件，这样：
+- 不會暴露你的節點信息
+- 不會有磁盤空間問題
+- 不依賴文件傳輸
 
 ---
 
@@ -46,11 +57,9 @@ sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlg
        ↓
 3. 安裝 ShellCrash
        ↓
-4. 配置訂閱 / 節點
+4. 直接在路由器上生成 config.yaml（不要上傳！）
        ↓
-5. 配置分流規則（AI 白名單）
-       ↓
-6. 選擇代理模式
+5. 啟動並驗證
 ```
 
 ---
@@ -137,58 +146,171 @@ sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlg
 
 ---
 
-## 🌐 Step 4：配置訂閱 / 節點
+## ⚙️ Step 4：直接在路由器上生成配置文件
 
-### 方式一：在路由器上手動添加節點
-
-```bash
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "/userdisk/shellcrash/menu.sh"
-# 選擇：6 - 配置文件管理 → 1 - 添加節點 → 粘貼 VLESS URL
-```
-
-### 方式二：直接寫入配置（推薦）
+**不要上傳任何 config 文件！** 直接 SSH 進入路由器，粘貼以下命令並替換 `YOUR_VLESS_URL` 為你的節點：
 
 ```bash
-# VLESS 節點信息
-# 提供商：YOUR_NODE_NAME
-# 協議：VLESS + WebSocket + TLS
-# 伺服器：YOUR_PROXY_SERVER:443
-# UUID：YOUR_UUID
-# Path：/
-
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat > /tmp/ShellCrash/config.yaml" < config.yaml
+# SSH 進入路由器
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
 ```
 
-### 方式三：訂閱 URL（在 ShellCrash 界面操作）
+### 方式一：粘貼 VLESS URL（推薦）
+
+在 SSH 會話中粘貼：
+```bash
+# 啟動 ShellCrash 菜單
+/userdisk/shellcrash/menu.sh
 ```
-# 訂閱 URL（在 ShellCrash 界面粘貼）
-https://cfnew.agooxo.workers.dev/bf25a7b8-1f52-4be9-93f5-623a878b37e9/sub
+選擇：`6 - 配置文件管理` → `1 - 添加節點` → 粘貼你的 VLESS URL
+
+### 方式二：完全用命令生成（無需交互）
+
+把你的 VLESS URL 代入以下命令（把 `YOUR_VLESS_URL` 換成你的）：
+
+```bash
+# 提取 URL 中的關鍵信息
+VLESS_URL="YOUR_VLESS_URL"
+UUID=$(echo "$VLESS_URL" | grep -oP '(?<=@)[^@]+' | cut -d: -f1)
+SERVER=$(echo "$VLESS_URL" | grep -oP '(?<=@)[^:]+')
+PORT=$(echo "$VLESS_URL" | grep -oP '(?<=:)\d+(?=/)')
+PATH=$(echo "$VLESS_URL" | grep -oP '(?<==)[^&]+(?=&|$)')
+NAME="proxy"
+
+# 生成 config.yaml
+cat > /tmp/ShellCrash/config.yaml << EOF
+mixed-port: 7890
+redir-port: 7892
+allow-lan: true
+mode: rule
+log-level: debug
+ipv6: false
+external-controller: :9999
+unified-delay: true
+
+dns:
+  enable: true
+  listen: :1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.0/8
+  nameserver: [223.5.5.5, 1.2.4.8]
+  fallback: [8.8.8.8, 1.1.1.1]
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+proxies:
+  - name: $NAME
+    type: vless
+    server: $SERVER
+    port: $PORT
+    uuid: $UUID
+    network: ws
+    tls: true
+    sni: $SERVER
+    skip-cert-verify: false
+    udp: true
+    xudp: true
+    ws-opts:
+      path: "/"
+      headers:
+        Host: $SERVER
+
+proxy-groups:
+  - name: proxy
+    type: select
+    proxies: [$NAME]
+
+rules:
+  - DOMAIN-SUFFIX,anthropic.com,proxy
+  - DOMAIN-SUFFIX,api.anthropic.com,proxy
+  - DOMAIN-SUFFIX,claude.ai,proxy
+  - DOMAIN-SUFFIX,platform.claude.ai,proxy
+  - DOMAIN-SUFFIX,code.claude.ai,proxy
+  - DOMAIN-SUFFIX,openai.com,proxy
+  - DOMAIN-SUFFIX,chatgpt.com,proxy
+  - DOMAIN-SUFFIX,api.openai.com,proxy
+  - DOMAIN-SUFFIX,openaicom.imgix.net,proxy
+  - DOMAIN-SUFFIX,googleapis.com,proxy
+  - DOMAIN-SUFFIX,ai.google.dev,proxy
+  - DOMAIN-SUFFIX,makersuite.google.com,proxy
+  - DOMAIN-SUFFIX,aistudio.google.com,proxy
+  - DOMAIN-KEYWORD,chatgpt,proxy
+  - DOMAIN-KEYWORD,claude,proxy
+  - DOMAIN-KEYWORD,anthropic,proxy
+  - DOMAIN-KEYWORD,openai,proxy
+  - DOMAIN-KEYWORD,google-ai,proxy
+  - DOMAIN-KEYWORD,gemini,proxy
+  - DOMAIN-SUFFIX,ip.sb,proxy
+  - DOMAIN-SUFFIX,ipinfo.io,proxy
+  - GEOIP,CN,DIRECT
+  - MATCH,DIRECT
+EOF
+
+# 驗證配置
+/userdisk/shellcrash/CrashCore -t -f /tmp/ShellCrash/config.yaml
 ```
 
 ---
 
-## 🔀 Step 5：配置分流規則
+## 🚀 Step 5：啟動並驗證
 
-### 兩種模式
+```bash
+# 啟動 CrashCore
+killall CrashCore 2>/dev/null
+/userdisk/shellcrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml > /tmp/crash.log 2>&1 &
+
+# 等待啟動
+sleep 3
+
+# 驗證進程
+ps | grep CrashCore | grep -v grep
+
+# 驗證端口
+netstat -lnp | grep -E '7890|9999'
+```
+
+### 驗證代理是否正常
+
+在你的 Mac Terminal 執行：
+```bash
+# 測試 IP 檢測（需要設定 HTTP 代理或開啟 TUN）
+curl -x http://192.168.31.1:7890 -s https://ipinfo.io/json
+# 期望：返回你的代理伺服器 IP（不是你本地 ISP IP）
+
+# 測試 Anthropic API
+curl -x http://192.168.31.1:7890 -s -w "\nHTTP: %{http_code}" \
+  -X POST \
+  -H "x-api-key: dummy" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "content-type: application/json" \
+  -d '{"model":"claude-3-5-sonnet-20241022","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}' \
+  'https://api.anthropic.com/v1/messages'
+# 期望：HTTP 401 + "authentication_error"（不是 000 或 timeout）
+```
+
+---
+
+## 🔀 代理模式：Redir vs TUN
 
 | 模式 | 原理 | 客戶端設置 |
 |------|------|-----------|
-| **Redir 模式**（推薦） | iptables 轉發 TCP 443 流量到代理 | Mac 需設定 HTTP 代理 `192.168.31.1:7890` |
+| **Redir 模式**（推薦） | iptables 轉發流量到代理 | Mac 需設定 HTTP 代理 `192.168.31.1:7890` |
 | **TUN 模式** | 虛擬網卡接管所有流量 | 客戶端無需任何設置，自動代理 |
 
-### 推薦：Redir 模式（簡單穩定）
+### Redir 模式設定（推薦，穩定）
 
-客戶端設定 HTTP 代理：
+Mac：WiFi → `i` → HTTP 代理 → 開啟 → 填寫
 - **地址**：`192.168.31.1`
 - **端口**：`7890`
-- Mac：WiFi → `i` → HTTP 代理 → 開啟 → 填寫
 
 ### TUN 模式（可選，全自動）
 
-如果想要 Mac 完全自動代理（唔使設定代理）：
+⚠️ `routing-all: true` 在 AX9000 原廠固件可能造成迴環，**唔建議使用**。
 
+如需開啟 TUN，在 config.yaml 加入：
 ```yaml
-# config.yaml 加入：
 tun:
   enable: true
   stack: system
@@ -197,40 +319,6 @@ tun:
     - 8.8.8.8:53
     - 1.1.1.1:53
   auto-detect-interface: true
-```
-
-⚠️ `routing-all: true` 在 AX9000 原廠固件上可能造成迴環，**唔建議使用**。
-
----
-
-## ✅ 驗證代理是否正常
-
-### 錯誤方式
-- ❌ 用 IP 查詢網站（如 whatismyip.com.tw）— 返回嘅 IP 可能係 DNS 負載均衡結果
-- ❌ Clash Dashboard `history: []` 空 — 短連接 HTTP 請求唔記入 history
-- ❌ Cloudflare JS Challenge 頁面 — 唔係地區封鎖
-
-### 正確方式
-```bash
-# 在 Mac Terminal 執行（需要設定 HTTP 代理或開啟 TUN）
-# ✅ Anthropic API — 401 = 成功連接，只有 key 無效
-curl -x http://192.168.31.1:7890 -s -w "\nHTTP: %{http_code}" \
-  -X POST \
-  -H "x-api-key: dummy" \
-  -H "anthropic-version: 2023-06-01" \
-  -H "content-type: application/json" \
-  -d '{"model":"claude-3-5-sonnet-20241022","max_tokens":10,"messages":[{"role":"user","content":"hi"}]}' \
-  'https://api.anthropic.com/v1/messages'
-# 期望：HTTP 401 + "authentication_error"
-
-# ✅ OpenAI API
-curl -x http://192.168.31.1:7890 -k -s -w "\nHTTP: %{http_code}" \
-  -H "Authorization: Bearer dummy" \
-  'https://api.openai.com/v1/models'
-# 期望：HTTP 401 "Incorrect API key provided"
-
-# ✅ ChatGPT 網頁
-curl -x http://192.168.31.1:7890 -sL https://chatgpt.com -o /dev/null -w "HTTP: %{http_code}\n"
 ```
 
 ---
@@ -242,19 +330,13 @@ curl -x http://192.168.31.1:7890 -sL https://chatgpt.com -o /dev/null -w "HTTP: 
 sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "ps | grep CrashCore"
 
 # 查看 ShellCrash 日誌
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "tail -20 /tmp/ShellCrash/ShellCrash.log"
-
-# 查看 Clash 實時日誌（需要開啟 debug 模式）
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cat /tmp/ShellCrash/crashcore.log | grep -E 'DIRECT|代理' | tail -10"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "tail -20 /tmp/crash.log"
 
 # Dashboard（瀏覽器打開）
 open http://192.168.31.1:9999
 
 # 重啟代理
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
-
-# 測試 API 是否走代理（在 Mac terminal）
-curl -x http://192.168.31.1:7890 -s https://api.anthropic.com -o /dev/null -w "HTTP: %{http_code}\n"
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "killall CrashCore; sleep 2; /userdisk/shellcrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml > /tmp/crash.log 2>&1 &"
 ```
 
 ---
@@ -270,30 +352,33 @@ curl -x http://192.168.31.1:7890 -s https://api.anthropic.com -o /dev/null -w "H
 | HTTP 代理端口 | `7890` |
 | REDIR 端口 | `7892` |
 | Dashboard | `http://192.168.31.1:9999` |
-| TUN 設備 | `Meta`（28.0.0.0/30） |
-| 路由表 | `table 2022` |
 
 ---
 
 ## ❓ 常見問題
 
+### Q: 磁盤空間不足？
+/userdisk 分區只有 42MB，空間有限。config.yaml 存在 `/tmp`（tmpfs，350MB 空閒，重啟後丢失）。
+
+### Q: 重啟路由器後配置丢失？
+是的，因為配置存在 `/tmp`。每次重啟後需要重新生成配置：
+```bash
+# 重新生成並啟動
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 \
+  "/userdisk/shellcrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml > /tmp/crash.log 2>&1 &"
+```
+
 ### Q: ShellCrash 提示核心不完整？
 ```bash
-# 重新下載核心
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1
-cd /tmp/ShellCrash
+sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 << 'ENDSSH'
+cd /tmp
 curl -kfsSL https://raw.githubusercontent.com/juewuy/ShellCrash/master/CrashCore.tar.gz -o CrashCore.tar.gz
-tar -zxf CrashCore.tar.gz
+tar -zxf CrashCore.tar.gz -C /userdisk/shellcrash/
+ENDSSH
 ```
 
 ### Q: TUN 模式造成迴環？
 停用 `routing-all: true`，改用 Redir 模式 + HTTP 代理。
-
-### Q: 訂閱更新後節點没了？
-每次重啟路由器後，需重新拷貝配置：
-```bash
-sshpass -p 'YOUR_NEW_SSH_PASSWORD' ssh -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa root@192.168.31.1 "cp /userdisk/shellcrash/yamls/config.yaml /tmp/ShellCrash/config.yaml; killall CrashCore; sleep 1; /tmp/ShellCrash/CrashCore -d /userdisk/shellcrash -f /tmp/ShellCrash/config.yaml &"
-```
 
 ---
 
