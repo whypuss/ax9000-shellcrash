@@ -1,0 +1,94 @@
+# AX9000 ShellCrash 配置示例
+# 使用前請替換為你自己的節點信息
+
+mixed-port: 7890
+redir-port: 7892
+tproxy-port: 7893
+allow-lan: true
+mode: rule
+log-level: debug
+ipv6: false
+external-controller: :9999
+unified-delay: true
+
+dns:
+  enable: true
+  listen: :1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.0/8
+  nameserver: [ 223.5.5.5, 1.2.4.8, 127.0.0.1 ]
+  fallback: [ 8.8.8.8, 1.1.1.1 ]
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+# === TUN 模式（可選，客戶端無需設定代理） ===
+# ⚠️ routing-all: true 在 AX9000 原廠固件可能造成迴環，唔建議使用
+# tun:
+#   enable: true
+#   stack: system
+#   auto-route: true
+#   dns-hijack:
+#     - 8.8.8.8:53
+#     - 1.1.1.1:53
+#   auto-detect-interface: true
+
+# === 代理節點（VLESS + WebSocket + TLS）===
+# 請替換為你自己的節點信息
+proxies:
+  - name: hl13893j
+    type: vless
+    server: jp.xlin.eu.cc
+    port: 443
+    uuid: 9158ed39-7953-492f-80b7-531c5fa3ceeb
+    network: ws
+    tls: true
+    sni: jp.xlin.eu.cc
+    skip-cert-verify: false
+    udp: true
+    xudp: true
+    ws-opts:
+      path: "/"
+      headers:
+        Host: jp.xlin.eu.cc
+
+proxy-groups:
+  - name: 代理
+    type: select
+    proxies:
+      - hl13893j
+
+rules:
+  # ========== AI 服務分流（白名單模式）==========
+  # Anthropic
+  - DOMAIN-SUFFIX,anthropic.com,代理
+  - DOMAIN-SUFFIX,api.anthropic.com,代理
+  - DOMAIN-SUFFIX,claude.ai,代理
+  - DOMAIN-SUFFIX,platform.claude.ai,代理
+  - DOMAIN-SUFFIX,code.claude.ai,代理
+
+  # OpenAI
+  - DOMAIN-SUFFIX,openai.com,代理
+  - DOMAIN-SUFFIX,chatgpt.com,代理
+  - DOMAIN-SUFFIX,api.openai.com,代理
+  - DOMAIN-SUFFIX,openaicom.imgix.net,代理
+
+  # Google AI
+  - DOMAIN-SUFFIX,googleapis.com,代理
+  - DOMAIN-SUFFIX,ai.google.dev,代理
+  - DOMAIN-SUFFIX,makersuite.google.com,代理
+
+  # 關鍵字匹配
+  - DOMAIN-KEYWORD,chatgpt,代理
+  - DOMAIN-KEYWORD,claude,代理
+  - DOMAIN-KEYWORD,anthropic,代理
+  - DOMAIN-KEYWORD,openai,代理
+  - DOMAIN-KEYWORD,google-ai,代理
+  - DOMAIN-KEYWORD,gemini,代理
+
+  # ========== 默認規則 ==========
+  # 中國 IP 直連
+  - GEOIP,CN,DIRECT
+  # 其餘全部直連（白名單模式）
+  - MATCH,DIRECT
